@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kávový Automat - Monitorovací Systém</title>
+  <!-- Fallback CSS pro základní styling -->
+  <style>
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      margin: 0; 
+      padding: 0; 
+      background-color: #0f0f0f;
+      color: #212121;
+    }
+    
+    /* Fallback styly pro přihlašovací formulář */
+    .login-section {
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .main-header h1 {
+      margin: 20px 0;
+      text-align: center;
+      color: white;
+    }
+    
+    input, button {
+      padding: 8px;
+      margin: 5px 0;
+      display: block;
+      width: 100%;
+    }
+    
+    .card-header {
+      background-color: #ED3E23;
+      color: white;
+      padding: 10px;
+      border-radius: 5px 5px 0 0;
+    }
+    
+    .card-body {
+      padding: 15px;
+      background-color: white;
+      border-radius: 0 0 5px 5px;
+      margin-bottom: 20px;
+    }
+    
+    .btn {
+      background-color: #ED3E23;
+      color: white;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+  </style>
+  <!-- Google Fonts - Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Hlavní CSS soubor -->
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Supabase JS knihovna -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <!-- Přihlašovací sekce -->
+  <section id="login-section" class="login-section">
+    <!-- Datum a čas v levém horním rohu -->
+    <div id="current-datetime" class="datetime-display"></div>
+
+    <!-- Hlavní nadpis -->
+    <div class="main-header">
+      <h1>☕ Přihlaste se pro odběr kávy</h1>
+    </div>
+    
+    <div class="login-containers">
+      <!-- Levé okno - Email a heslo -->
+      <div class="login-container left-container">
+        <div class="card">
+          <div class="card-header">
+            <h2>🔑 Přihlášení heslem</h2>
+            <p class="login-subtitle">Pokud jste zapomněli RFID kartu</p>
+          </div>
+          <div class="card-body">
+            <form id="email-login-form">
+              <div class="form-group">
+                <label for="email">📧 Email:</label>
+                <input type="email" id="email" class="form-control" placeholder="váš.email@example.com" required>
+              </div>
+              <div class="form-group">
+                <label for="password">🔒 Heslo:</label>
+                <input type="password" id="password" class="form-control" placeholder="Zadejte vaše heslo" required>
+              </div>
+              <div class="form-group">
+                <button type="submit" class="btn">🚪 Přihlásit se</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pravé okno - RFID karta -->
+      <div class="login-container right-container">
+        <div class="card">
+          <div class="card-header">
+            <h2>💳 Přihlášení kartou</h2>
+            <p class="login-subtitle">Stačí přiložit nebo zadat číslo karty</p>
+          </div>
+          <div class="card-body">
+            <form id="rfid-login-form">
+              <div class="form-group">
+                <label for="rfid">🪪 RFID karta:</label>
+                <input type="text" id="rfid" class="form-control" placeholder="Přiložte nebo zadejte číslo karty">
+              </div>
+              <div class="form-group">
+                <button type="submit" class="btn">⚡ Rychlé přihlášení</button>
+              </div>
+            </form>
+            <div class="register-link">
+              <p>🆕 Nemáte účet? <a href="#" id="register-link">Zaregistrujte se</a></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hlavní aplikace po přihlášení -->
+  <section id="app-section" class="app-section hidden">
+    <!-- Horní navigační lišta -->
+    <header class="app-header">
+      <div class="user-info">
+        <span id="username-display">Uživatel</span>
+        <span id="credit-display">0 Kč</span>
+      </div>
+      <div class="app-controls">
+        <button id="toggle-view-btn" class="btn btn-accent">Přepnout pohled</button>
+        <button id="logout-btn" class="btn btn-outline">Odhlásit</button>
+      </div>
+    </header>
+
+    <!-- Hlavní obsah aplikace -->
+    <div class="app-content">
+      <!-- Produkty - kávy k zakoupení -->
+      <div id="products-container" class="products-container"></div>
+      
+      <!-- Admin panel (jen pro adminy) -->
+      <div id="admin-panel" class="admin-panel hidden">
+        <div class="admin-tabs">
+          <button class="tab-btn active" data-tab="users">Správa uživatelů</button>
+          <button class="tab-btn" data-tab="products">Správa produktů</button>
+          <button class="tab-btn" data-tab="stats">Statistiky</button>
+        </div>
+        
+        <div class="tab-content">
+          <div id="users-tab" class="tab-pane active"></div>
+          <div id="products-tab" class="tab-pane"></div>
+          <div id="stats-tab" class="tab-pane"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modální okna -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+      <div id="modal-container" class="modal-container">
+        <div class="modal-header">
+          <h2 id="modal-title">Název modálního okna</h2>
+          <button id="modal-close" class="modal-close">&times;</button>
+        </div>
+        <div id="modal-content" class="modal-content">
+          <!-- Obsah modálního okna se naplní dynamicky -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Registrační sekce -->
+  <section id="register-section" class="register-section hidden">
+    <div class="card register-card">
+      <div class="card-header">
+        <h2>Registrace nového uživatele</h2>
+      </div>
+      <div class="card-body">
+        <form id="register-form">
+          <div class="form-group">
+            <label for="reg-email">Email:</label>
+            <input type="email" id="reg-email" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-name">Jméno:</label>
+            <input type="text" id="reg-name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-password">Heslo:</label>
+            <input type="password" id="reg-password" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-password-confirm">Potvrzení hesla:</label>
+            <input type="password" id="reg-password-confirm" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <button type="submit" class="btn">Zaregistrovat se</button>
+            <button type="button" id="back-to-login" class="btn btn-outline">Zpět na přihlášení</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
