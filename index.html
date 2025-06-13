@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kávový Automat - Monitorovací Systém</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Google Fonts - Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Supabase JS knihovna -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <!-- Přihlašovací sekce -->
+  <section id="login-section" class="login-section">
+    <!-- Datum a čas v levém horním rohu -->
+    <div id="current-datetime" class="datetime-display"></div>
+
+    <!-- Hlavní nadpis -->
+    <div class="main-header">
+      <h1>☕ Přihlaste se pro odběr kávy</h1>
+    </div>
+    
+    <div class="login-containers">
+      <!-- Levé okno - Email a heslo -->
+      <div class="login-container left-container">
+        <div class="card">
+          <div class="card-header">
+            <h2>🔑 Přihlášení heslem</h2>
+            <p class="login-subtitle">Pokud jste zapomněli RFID kartu</p>
+          </div>
+          <div class="card-body">
+            <form id="login-form-password">
+              <div class="form-group">
+                <label for="login-email-password">📧 Email:</label>
+                <input type="email" id="login-email-password" class="form-control" placeholder="váš.email@example.com" required>
+              </div>
+              <div class="form-group">
+                <label for="login-password">🔒 Heslo:</label>
+                <input type="password" id="login-password" class="form-control" placeholder="Zadejte vaše heslo" required>
+              </div>
+              <button type="submit" class="btn">🚀 Přihlásit se</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pravé okno - RFID karta -->
+      <div class="login-container right-container">
+        <div class="card">
+          <div class="card-header">
+            <h2>💳 Přihlášení kartou</h2>
+            <p class="login-subtitle">Stačí přiložit nebo zadat číslo karty</p>
+          </div>
+          <div class="card-body">
+            <form id="login-form-rfid">
+              <div class="form-group">
+                <label for="login-rfid">💳 RFID karta:</label>
+                <input type="text" id="login-rfid" class="form-control" placeholder="Přiložte nebo zadejte číslo karty" required autofocus>
+                <p class="rfid-info">Systém vás identifikuje automaticky podle karty</p>
+              </div>
+              <button type="submit" class="btn">⚡ Rychlé přihlášení</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Odkaz na registraci -->
+    <div class="register-link white-link">
+      <a href="#" id="show-register">✨ Nemáte účet? Zaregistrujte se</a>
+    </div>
+  </section>
+
+  <!-- Registrační sekce -->
+  <section id="register-section" class="login-container" style="display: none;">
+    <div class="card">
+      <div class="card-header">
+        <h2>🎯 Registrace nového uživatele</h2>
+      </div>
+      <div class="card-body">
+        <form id="register-form">
+          <div class="form-group">
+            <label for="register-name">👤 Jméno:</label>
+            <input type="text" id="register-name" class="form-control" placeholder="Vaše celé jméno" required>
+          </div>
+          <div class="form-group">
+            <label for="register-email">📧 Email:</label>
+            <input type="email" id="register-email" class="form-control" placeholder="váš.email@example.com" required>
+          </div>
+          <div class="form-group">
+            <label for="register-password">🔒 Heslo:</label>
+            <input type="password" id="register-password" class="form-control" placeholder="Minimálně 6 znaků" required>
+          </div>
+          <div class="form-group">
+            <label for="register-password-confirm">🔐 Potvrzení hesla:</label>
+            <input type="password" id="register-password-confirm" class="form-control" placeholder="Zadejte heslo znovu" required>
+          </div>
+          <button type="submit" class="btn">🎉 Registrovat se</button>
+        </form>
+        <div style="margin-top: 24px; text-align: center;">
+          <a href="#" id="show-login">🔙 Již máte účet? Přihlaste se</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hlavní obsah aplikace -->
+  <div style="display: none; min-height: 100vh; padding: 2rem; display: flex; align-items: center; justify-content: center;" id="main-content-wrapper">
+    <div id="main-content" class="container" style="display: none;">
+    <header>
+      <h1>Kávový automat oddělení QM</h1>
+      <div class="navbar">
+        <ul class="nav-tabs">
+          <li class="nav-item">
+            <a href="#coffee-panel" class="nav-link active">Nabídka kávy</a>
+          </li>
+          <li class="nav-item">
+            <a href="#transactions-panel" class="nav-link">Moje transakce</a>
+          </li>
+          <li class="nav-item">
+            <a href="#stats-panel" class="nav-link">Statistiky</a>
+          </li>
+          <li class="nav-item" id="admin-tab" style="display: none;">
+            <a href="#admin-panel" class="nav-link">Admin Panel</a>
+          </li>
+        </ul>
+        <div class="user-controls" id="user-info">
+          <!-- Toto bude dynamicky naplněno JavaScript kódem -->
+        </div>
+      </div>
+    </header>
+
+    <!-- Záložka s nabídkou kávy -->
+    <div id="coffee-panel" class="tab-content active">
+      <div class="card">
+        <div class="card-header">
+          <h2>Nabídka kávy</h2>
+        </div>
+        <div class="card-body">
+          <div id="coffee-products" class="coffee-products">
+            <!-- Toto bude dynamicky naplněno JavaScript kódem -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Záložka s transakcemi -->
+    <div id="transactions-panel" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h2>Moje transakce</h2>
+        </div>
+        <div class="card-body">
+          <div id="user-transactions">
+            <!-- Toto bude dynamicky naplněno JavaScript kódem -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Záložka se statistikami -->
+    <div id="stats-panel" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h2>Statistiky odběru kávy</h2>
+        </div>
+        <div class="card-body">
+          <div id="stats-container">
+            <!-- Toto bude dynamicky naplněno JavaScript kódem -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin panel -->
+    <div id="admin-panel" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h2>Administrace systému</h2>
+        </div>
+        <div class="card-body">
+          <div class="admin-controls">
+            <div id="admin-users">
+              <!-- Toto bude dynamicky naplněno JavaScript kódem -->
+            </div>
+            
+            <div id="admin-products" class="mt-4">
+              <!-- Toto bude dynamicky naplněno JavaScript kódem -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
